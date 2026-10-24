@@ -113,3 +113,13 @@ IPC channel: `stats:weekly` returns `WeeklyStats`, with an optional `weekStart` 
 - The dashboard shows net tokens and cost saved, an energy range with sources, and at least three tips.
 - Unit tests cover pricing, aggregation and the tip rules.
 - All figures are labelled as estimates where they're estimates.
+
+## Integration checklist (do these when wiring the tracks together)
+1. **Write the DB layer.** `db/index.ts` opens SQLite (better-sqlite3) and runs `db/schema.sql` at startup. Both are empty stubs today.
+2. **Move the table into `schema.sql`.** Copy the `usage_log` SQL from `usage/schema.ts` into `db/schema.sql`, remove `db.exec(USAGE_SCHEMA)` from `usage/logger.ts`, then delete `usage/schema.ts`.
+3. **Add `better-sqlite3`** to `package.json` and swap `tests/usage/memdb.ts` to use it.
+4. **Wire the logger into `sendMessage`:** an adapter maps Person A's `usage.log({ chatId, model, difficulty, kind, usage })` onto `logger.record(...)` and returns `{ costUsd }`.
+5. **Move shared types** out of `usage/types.ts` into `src/shared/` (reuse `Difficulty` from `shared/chat.ts`).
+6. **Register `stats:weekly`** in the app shell and expose it through the preload bridge.
+7. **Agree the `Stats` shape with the front end** and map `WeeklyStats` onto it.
+8. **Re-verify prices** in `usage/pricing.ts` (last verified 2026-10-24) and the energy sources in `docs/energy-method.md`.
