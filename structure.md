@@ -2,17 +2,22 @@
 
 ```
 optimaize/
+├── config/              # Editable data: models.json (model registry), languages.json (language -> strong models, token-cost multipliers)
+├── docs/                # backend-design.md: flow, decisions, open questions
 ├── src/
-│   ├── main/            # Electron main process: app startup, window creation, holds the API key
-│   │   ├── ipc/         # Handlers the UI can call: send message, rerun on another model, weekly stats, save/check API key
-│   │   ├── router/      # Picks the model for each message (algorithm TBD) and learns from the user's manual model choices
-│   │   ├── providers/   # Anthropic Messages API client, streaming
-│   │   ├── usage/       # Logs tokens per call; per-model pricing and cost on the biggest model
-│   │   ├── context/     # Long chat -> summary -> fresh chat
+│   ├── main/            # Electron main process (the backend; current focus)
+│   │   ├── ipc/         # Thin handlers the UI calls: chat:send, chat:cancel, settings, stats
+│   │   ├── providers/   # openrouter.ts: single OpenRouter client (non-streaming), usage parsing
+│   │   ├── language/    # detect.ts, profiles.ts (per-language model strengths), tokenCost.ts
+│   │   ├── router/      # index.ts, classifier.ts, policy.ts (builds the model pool), feedback.ts (learns from overrides)
+│   │   ├── context/     # Summarize long chats and start fresh from the summary
+│   │   ├── pipeline/    # Optional settings-driven steps; translate.ts (translateThroughEnglish, off by default)
+│   │   ├── prompts/     # Fixed English system prompt
+│   │   ├── usage/       # Per-call token and cost logging
 │   │   ├── db/          # SQLite schema and access
-│   │   └── security/    # Encrypted local API key storage
+│   │   └── security/    # Encrypted local OpenRouter key storage
 │   ├── preload/         # Bridge exposing a safe, typed API from main to the UI
-│   ├── pages/           # React UI (Electron's "renderer"): chat, dashboard, settings, onboarding, token lessons, shared components
-│   └── shared/          # Types used by main, preload, and pages
+│   ├── pages/           # React UI (frontend, out of scope for backend work)
+│   └── shared/          # Typed IPC channels and shared types (ChatRequest, ChatChunk, UsageRecord, config)
 └── tests/               # Jest tests
 ```

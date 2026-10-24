@@ -1,0 +1,18 @@
+[
+  {
+    "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "free": true,
+    "contextLength": 1000000,
+    "inputPricePerM": 0,
+    "outputPricePerM": 0,
+    "strengths": ["chat", "analysis", "code", "math", "writing"]
+  },
+  {
+    "id": "liquid/lfm-2.5-2.6b:free",
+    "free": true,
+    "contextLength": 65536,
+    "inputPricePerM": 0,
+    "outputPricePerM": 0,
+    "strengths": ["chat"]
+  }
+]

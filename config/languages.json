@@ -1,0 +1,10 @@
+{
+  "default": {
+    "modelScores": {
+      "nvidia/nemotron-3-ultra-550b-a55b:free": 0.7,
+      "liquid/lfm-2.5-2.6b:free": 0.4
+    },
+    "tokenCostMultiplier": 1,
+    "sources": ["PLACEHOLDER: scores are guesses and have not been researched yet"]
+  }
+}
