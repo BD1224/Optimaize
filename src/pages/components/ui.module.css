@@ -1,0 +1,64 @@
+.badge {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+}
+
+a.card:hover {
+  border-color: var(--border-strong);
+}
+
+.label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.value {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.unit {
+  margin-left: 4px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.delta {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.delta[data-tone="good"] {
+  color: var(--good);
+}
+
+.modelBadge {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.upgrade {
+  margin-left: auto;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12px;
+}

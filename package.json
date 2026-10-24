@@ -1,21 +1,54 @@
 {
   "name": "optimaize",
+  "productName": "Optimaize",
   "version": "0.1.0",
   "private": true,
-  "description": "A desktop chat app for daily Claude users that cuts wasted tokens",
+  "description": "Desktop chat app that cuts wasted tokens, especially for people who don't write in English.",
+  "main": ".webpack/main/index.cjs",
   "scripts": {
-    "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "start": "electron-forge start",
+    "preview": "webpack serve --config webpack.preview.config.mjs",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "lint": "oxlint",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
   },
   "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "@anthropic-ai/sdk": "^1.3.0"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^8.0.1",
+    "@electron-forge/maker-deb": "^8.0.1",
+    "@electron-forge/maker-rpm": "^8.0.1",
+    "@electron-forge/maker-squirrel": "^8.0.1",
+    "@electron-forge/maker-zip": "^8.0.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^8.0.1",
+    "@electron-forge/plugin-fuses": "^8.0.1",
+    "@electron-forge/plugin-webpack": "^8.0.1",
+    "@electron/fuses": "^2.1.3",
+    "@types/electron-squirrel-startup": "^1.0.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.5",
-    "electron": "^45.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+    "css-loader": "^6.11.0",
+    "electron": "44.9.3",
+    "fork-ts-checker-webpack-plugin": "^7.3.0",
+    "html-webpack-plugin": "^5.6.8",
     "jest": "^30.5.2",
+    "node-loader": "^2.1.0",
+    "oxlint": "^1.89.0",
+    "style-loader": "^3.3.4",
     "ts-jest": "^29.4.15",
-    "typescript": "^5.9.3"
+    "ts-loader": "^9.6.2",
+    "typescript": "^6.0.3",
+    "webpack": "^5.112.2",
+    "webpack-cli": "7.2.3",
+    "webpack-dev-server": "^5.2.7"
   }
 }
