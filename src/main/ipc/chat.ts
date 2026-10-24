@@ -1,0 +1,1 @@
+// IPC handlers: sendMessage, upgradeMessage
