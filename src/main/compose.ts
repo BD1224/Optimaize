@@ -1,6 +1,7 @@
 // Composition root: builds every dependency once and hands back what the IPC layer needs.
 // No Electron imports, so the whole app logic can be exercised in tests with a fake provider.
-import { createConfigStore } from './db/settings';
+import { createChatStore } from './db/chats';
+import { createConfigStore, createProfileStore } from './db/settings';
 import { createMessageStore } from './db/messages';
 import { createRoutingMemoryStore } from './db/routingMemory';
 import type { Db } from './db';
@@ -28,7 +29,9 @@ export interface ComposeOptions {
 export function composeApp(opts: ComposeOptions) {
   const messages = createMessageStore(opts.db, opts.now);
   const logger = createUsageLogger(opts.db);
+  const chats = createChatStore(opts.db, opts.now);
   const config = createConfigStore(opts.db);
+  const profile = createProfileStore(opts.db);
   const feedback = createFeedback(createRoutingMemoryStore(opts.db));
   const complete = opts.complete ?? createComplete(opts.getApiKey);
   const streamReply = opts.streamReply ?? createStreamReply(opts.getApiKey);
@@ -61,8 +64,10 @@ export function composeApp(opts: ComposeOptions) {
     chatDeps,
     logger,
     config,
+    profile,
     feedback,
     messages,
+    chats,
     // +1 because the stats window excludes its end, and a call logged this very millisecond counts
     getWeeklyStats: () => getWeeklyStats(logger, (opts.now ?? Date.now)() + 1),
   };

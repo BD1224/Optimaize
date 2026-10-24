@@ -2,6 +2,7 @@
 import type {
   Category,
   ChatMessage,
+  MessageMeta,
   Difficulty,
   Role,
   SendMessageRequest,
@@ -14,7 +15,7 @@ import type {
 // so tests can supply fakes instead of a real DB or the paid API.
 export interface SendMessageDeps {
   db: {
-    saveMessage(chatId: string, role: Role, content: string): ChatMessage;
+    saveMessage(chatId: string, role: Role, content: string, meta?: MessageMeta): ChatMessage;
   };
   context: {
     // Returns the messages to send to the model. If the chat was too long it is
@@ -22,7 +23,7 @@ export interface SendMessageDeps {
     prepare(chatId: string): Promise<{ chatId: string; messages: ChatMessage[]; rolledOver: boolean }>;
   };
   router: {
-    route(text: string): Promise<{
+    route(text: string, forcedModel?: string): Promise<{
       model: string;
       category: Category;
       difficulty: Difficulty;
@@ -63,14 +64,17 @@ export async function sendMessage(
   onToken: (delta: string) => void,
 ): Promise<SendMessageResult> {
   // 1. db: save the user's message first so it isn't lost if a later step fails
-  const userMessage = deps.db.saveMessage(req.chatId, 'user', req.text);
+  const userMessage = deps.db.saveMessage(req.chatId, 'user', req.text, {
+    language: req.language,
+    files: req.files,
+  });
 
   // 2. context: if the chat is too long, summarize it and continue in a fresh chat
   //    (ctx.chatId may differ from req.chatId after a rollover)
   const ctx = await deps.context.prepare(req.chatId);
 
   // 3. router: classify how hard the message is and pick the cheapest capable model
-  const { model, category, difficulty, classifier } = await deps.router.route(req.text);
+  const { model, category, difficulty, classifier } = await deps.router.route(req.text, req.model);
 
   // 4. providers: call the Claude API and stream the reply back through onToken
   const { text, usage } = await deps.providers.streamReply({
@@ -104,7 +108,11 @@ export async function sendMessage(
   }).costUsd;
 
   // 6. db: save the full reply, then return everything to the UI
-  const reply = deps.db.saveMessage(ctx.chatId, 'assistant', text);
+  const reply = deps.db.saveMessage(ctx.chatId, 'assistant', text, {
+    language: req.language,
+    replyTo: userMessage.id,
+    category,
+  });
 
   return {
     userMessage,

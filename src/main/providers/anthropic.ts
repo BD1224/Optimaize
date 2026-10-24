@@ -85,7 +85,8 @@ export function createStreamReply(
     const stream = makeClient(getApiKey()).messages.stream({
       model,
       max_tokens: REPLY_MAX_TOKENS,
-      messages,
+      // The API rejects extra fields (e.g. the stored message id), so send only role and content
+      messages: messages.map(({ role, content }) => ({ role, content })),
     });
     stream.on('text', onToken);
     const final = await stream.finalMessage();
@@ -124,5 +125,29 @@ export function createCheckKey(
       if (status === 401 || status === 403) return { valid: false, error: 'The API key was rejected' };
       return { valid: false, error: 'Could not reach Anthropic to check the key' };
     }
+  };
+}
+
+// Token count for a piece of text, using the free token-counting endpoint.
+export type CountTokens = (text: string) => Promise<number>;
+
+export function createCountTokens(
+  getApiKey: () => string,
+  makeClient: (apiKey: string) => {
+    messages: {
+      countTokens(params: {
+        model: string;
+        messages: { role: 'user'; content: string }[];
+      }): Promise<{ input_tokens: number }>;
+    };
+  } = (apiKey) => new Anthropic({ apiKey, maxRetries: 0 }) as never,
+  model = 'claude-haiku-5-5',
+): CountTokens {
+  return async (text) => {
+    const { input_tokens } = await makeClient(getApiKey()).messages.countTokens({
+      model,
+      messages: [{ role: 'user', content: text }],
+    });
+    return input_tokens;
   };
 }

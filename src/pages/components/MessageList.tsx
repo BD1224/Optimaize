@@ -72,17 +72,22 @@ function UserMessage({ message, showSentAs }: { message: Message; showSentAs: bo
 
 function Receipt({ usage, models, onUpgrade }: { usage: Usage; models: Model[]; onUpgrade: (modelId: string) => void }) {
   // BACKEND: `usage` comes back with each reply: tokens and cost with vs. without Optimaize, and the model used.
-  const fraction = savedFraction(usage.tokensWith, usage.tokensWithout);
+  const tokenFraction = savedFraction(usage.tokensWith, usage.tokensWithout);
+  const costFraction = savedFraction(usage.costWith, usage.costWithout);
 
   return (
     <div className={styles.receipt}>
       <span>
-        <strong>{formatNumber(usage.tokensWith)}</strong> tokens vs {formatNumber(usage.tokensWithout)} without
+        Tokens: <strong>{formatNumber(usage.tokensWith)}</strong> vs {formatNumber(usage.tokensWithout)} without
         Optimaize
+        {tokenFraction > 0 ? ` (${formatSaving(tokenFraction)})` : ""}
       </span>
-      {fraction > 0 ? (
+      <span>
+        Cost: <strong>{formatUsd(usage.costWith)}</strong> vs {formatUsd(usage.costWithout)} without Optimaize
+      </span>
+      {costFraction > 0 ? (
         <span className={styles.saved}>
-          {formatSaving(fraction)}, {formatUsd(usage.costWithout - usage.costWith)} saved
+          {formatSaving(costFraction)}, {formatUsd(usage.costWithout - usage.costWith)} saved
         </span>
       ) : (
         <span>No savings on this one</span>

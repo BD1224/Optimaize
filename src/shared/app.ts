@@ -1,12 +1,4 @@
-// App-wide IPC contract: settings, API key, stats, and the preload API the UI sees.
-import type {
-  SendMessageRequest,
-  SendMessageResult,
-  TokenEvent,
-  UpgradeMessageRequest,
-  UpgradeMessageResult,
-} from './chat';
-
+// App-wide IPC contract: settings, API key and stats channels, and the config shape.
 export const STATS_WEEKLY = 'stats:weekly';
 export const SETTINGS_SAVE_API_KEY = 'settings:saveApiKey';
 export const SETTINGS_CHECK_API_KEY = 'settings:checkApiKey';
@@ -42,18 +34,4 @@ export type ConfigPatch = {
 export interface CheckApiKeyResult {
   valid: boolean;
   error?: string;
-}
-
-// What the preload bridge exposes as window.api. The renderer never sees the key.
-// Stats is typed loosely here to avoid importing main-process types into the UI; the
-// shape is WeeklyStats in src/main/usage/types.ts.
-export interface OptimaizeApi {
-  sendMessage(req: SendMessageRequest): Promise<SendMessageResult>;
-  upgradeMessage(req: UpgradeMessageRequest): Promise<UpgradeMessageResult>;
-  onToken(listener: (event: TokenEvent) => void): () => void;
-  getWeeklyStats(): Promise<unknown>;
-  saveApiKey(key: string): Promise<{ ok: true }>;
-  checkApiKey(key?: string): Promise<CheckApiKeyResult>;
-  getConfig(): Promise<AppConfig>;
-  setConfig(patch: ConfigPatch): Promise<AppConfig>;
 }

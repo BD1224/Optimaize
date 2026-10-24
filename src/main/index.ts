@@ -6,7 +6,8 @@ import { openDatabase } from './db';
 import { registerChatHandlers } from './ipc/chat';
 import { registerSettingsHandlers } from './ipc/settings';
 import { registerStatsHandler } from './ipc/stats';
-import { createCheckKey } from './providers/anthropic';
+import { createBackendApi, registerBackendApi } from './ipc/ui';
+import { createCheckKey, createCountTokens } from './providers/anthropic';
 import { createKeystore } from './security/keystore';
 
 // Injected by Electron Forge's webpack plugin; undefined when run any other way
@@ -23,23 +24,23 @@ function startBackend() {
     decrypt: (data) => safeStorage.decryptString(data),
   });
 
-  const parts = composeApp({
-    db,
-    getApiKey: () => {
-      const key = keystore.get();
-      if (!key) throw new Error('No API key set. Add one in Settings.');
-      return key;
-    },
-  });
+  const getApiKey = () => {
+    const key = keystore.get();
+    if (!key) throw new Error('No API key set. Add one in Settings.');
+    return key;
+  };
+  const parts = composeApp({ db, getApiKey });
 
+  registerBackendApi(ipcMain, createBackendApi({ app: parts, keystore, countTokens: createCountTokens(getApiKey) }));
   registerChatHandlers(parts.chatDeps);
   registerStatsHandler(ipcMain, parts.logger);
   registerSettingsHandlers(ipcMain, { keystore, config: parts.config, checkKey: createCheckKey() });
   return { db };
 }
 
-function createWindow() {
+function createWindow(show = true) {
   const win = new BrowserWindow({
+    show,
     width: 1200,
     height: 800,
     webPreferences: {
@@ -52,14 +53,33 @@ function createWindow() {
   return win;
 }
 
+async function runSmokeTest(db: ReturnType<typeof startBackend>['db']) {
+  try {
+    const win = createWindow(false);
+    await new Promise<void>((resolve) => win.webContents.once('did-finish-load', () => resolve()));
+    const result = await win.webContents.executeJavaScript(`(async () => {
+      const models = await window.api.listModels();
+      const profile = await window.api.getProfile();
+      const chats = await window.api.listChats();
+      const stats = await window.api.getStats(0);
+      return JSON.stringify({ models: models.length, name: profile.name, chats: chats.length, tokens: stats.tokensWith, hasKey: await window.api.hasApiKey(), ui: document.body.innerText.trim().slice(0, 40) });
+    })()`);
+    console.log('SMOKE OK', result);
+  } catch (err) {
+    console.log('SMOKE FAILED', err);
+    process.exitCode = 1;
+  } finally {
+    db.close();
+    app.quit();
+  }
+}
+
 app.whenReady().then(() => {
   const { db } = startBackend();
 
-  // Startup check used to verify the backend boots without opening a window
+  // Startup check: load the real UI in a hidden window and call the backend through the preload bridge
   if (process.env.OPTIMAIZE_SMOKE_TEST === '1') {
-    console.log('SMOKE OK');
-    db.close();
-    app.quit();
+    void runSmokeTest(db);
     return;
   }
 

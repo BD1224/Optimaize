@@ -18,9 +18,21 @@ export interface RouterDeps {
   getOverrides?: () => Overrides;
 }
 
-export function createRouter(deps: RouterDeps): { route(text: string): Promise<RouteResult> } {
+export function createRouter(deps: RouterDeps): {
+  route(text: string, forcedModel?: string): Promise<RouteResult>;
+} {
   return {
-    async route(text) {
+    async route(text, forcedModel) {
+      // The user picked a model themselves: no classifier call, nothing to charge for it
+      if (forcedModel) {
+        return {
+          model: forcedModel,
+          category: 'chat',
+          difficulty: 'medium',
+          classifier: { model: CLASSIFIER_MODEL, usage: { inputTokens: 0, outputTokens: 0 } },
+        };
+      }
+
       if (!deps.isEnabled()) {
         return {
           model: DEFAULT_MODEL,

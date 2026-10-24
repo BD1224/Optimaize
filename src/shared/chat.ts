@@ -18,6 +18,14 @@ export interface ChatMessage {
   createdAt: number;
 }
 
+// Stored with a message so the UI can show it and usage can be traced back to it
+export interface MessageMeta {
+  language?: string;
+  replyTo?: string;
+  category?: Category;
+  files?: { name: string; type: string; size: number }[];
+}
+
 export interface TokenUsage {
   inputTokens: number;
   outputTokens: number;
@@ -28,6 +36,10 @@ export interface SendMessageRequest {
   text: string;
   // Language the user wrote in (e.g. 'fr'); recorded so the dashboard can break usage down by language
   language?: string;
+  // A specific model chosen by the user; leave out to let the router pick
+  model?: string;
+  // Attached files' names, types and sizes (kept with the message for display)
+  files?: { name: string; type: string; size: number }[];
 }
 
 // Re-run an answer on the next model up. The UI has all of this from the earlier SendMessageResult.
@@ -39,6 +51,8 @@ export interface UpgradeMessageRequest {
   category: Category;
   difficulty: Difficulty;
   language?: string;
+  // A specific bigger model; leave out to move one step up
+  toModel?: string;
 }
 
 export interface UpgradeMessageResult {

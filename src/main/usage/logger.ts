@@ -33,6 +33,8 @@ export interface UsageLogger {
   record(rec: UsageRecord): void;
   // Records with since <= createdAt < until, oldest first.
   list(since: number, until: number): UsageRecord[];
+  // Every call belonging to one exchange: the original message and its Upgrade re-runs
+  forExchange(rootMessageId: string): UsageRecord[];
 }
 
 // Expects the usage_log table from db/schema.sql (openDatabase() applies it).
@@ -44,6 +46,10 @@ export function createUsageLogger(db: UsageDb): UsageLogger {
   );
   const select = db.prepare(
     'SELECT * FROM usage_log WHERE created_at >= ? AND created_at < ? ORDER BY created_at ASC',
+  );
+
+  const selectExchange = db.prepare(
+    'SELECT * FROM usage_log WHERE message_id = ? OR parent_message_id = ? ORDER BY created_at ASC',
   );
 
   return {
@@ -69,6 +75,9 @@ export function createUsageLogger(db: UsageDb): UsageLogger {
     },
     list(since, until) {
       return (select.all(since, until) as Row[]).map(fromRow);
+    },
+    forExchange(rootMessageId) {
+      return (selectExchange.all(rootMessageId, rootMessageId) as Row[]).map(fromRow);
     },
   };
 }

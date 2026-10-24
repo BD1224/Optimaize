@@ -1,6 +1,8 @@
 import type { ModuleOptions } from 'webpack';
 
-export const rules: Required<ModuleOptions>['rules'] = [
+// Native node modules: main process only. The renderer has no Node (nodeIntegration is off), and the
+// asset relocator injects a __dirname reference that crashes the renderer bundle at startup.
+const nativeModuleRules: Required<ModuleOptions>['rules'] = [
   // Add support for native node modules
   {
     // We're specifying native_modules in the test because the asset relocator loader generates a
@@ -18,6 +20,9 @@ export const rules: Required<ModuleOptions>['rules'] = [
       },
     },
   },
+];
+
+const sharedRules: Required<ModuleOptions>['rules'] = [
   {
     // Bundle db/schema.sql into the main process as a string
     test: /\.sql$/,
@@ -34,3 +39,6 @@ export const rules: Required<ModuleOptions>['rules'] = [
     },
   },
 ];
+
+export const rules: Required<ModuleOptions>['rules'] = [...nativeModuleRules, ...sharedRules];
+export const rendererRules: Required<ModuleOptions>['rules'] = [...sharedRules];
