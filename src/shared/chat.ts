@@ -1,6 +1,7 @@
 // Chat IPC contract shared by main, preload, and pages
 
 export const CHAT_SEND = 'chat:send';
+export const CHAT_UPGRADE = 'chat:upgrade';
 export const CHAT_TOKEN = 'chat:token';
 
 export type Role = 'user' | 'assistant';
@@ -25,6 +26,27 @@ export interface TokenUsage {
 export interface SendMessageRequest {
   chatId: string;
   text: string;
+  // Language the user wrote in (e.g. 'fr'); recorded so the dashboard can break usage down by language
+  language?: string;
+}
+
+// Re-run an answer on the next model up. The UI has all of this from the earlier SendMessageResult.
+export interface UpgradeMessageRequest {
+  chatId: string;
+  userMessageId: string;
+  replyMessageId: string;
+  fromModel: string;
+  category: Category;
+  difficulty: Difficulty;
+  language?: string;
+}
+
+export interface UpgradeMessageResult {
+  reply: ChatMessage;
+  model: string;
+  fromModel: string;
+  usage: TokenUsage;
+  costUsd: number;
 }
 
 export interface SendMessageResult {

@@ -44,6 +44,12 @@ export interface SendMessageDeps {
       difficulty: Difficulty;
       kind: 'classifier' | 'reply';
       usage: TokenUsage;
+      // Ties the classifier call and the reply (and any later Upgrade) to one exchange
+      messageId?: string;
+      // Set when this call re-runs an earlier message on a bigger model
+      parentMessageId?: string;
+      isUpgrade?: boolean;
+      language?: string;
     }): { costUsd: number };
   };
 }
@@ -83,9 +89,19 @@ export async function sendMessage(
       difficulty,
       kind: 'classifier',
       usage: classifier.usage,
+      messageId: userMessage.id,
+      language: req.language,
     }).costUsd;
   }
-  costUsd += deps.usage.log({ chatId: ctx.chatId, model, difficulty, kind: 'reply', usage }).costUsd;
+  costUsd += deps.usage.log({
+    chatId: ctx.chatId,
+    model,
+    difficulty,
+    kind: 'reply',
+    usage,
+    messageId: userMessage.id,
+    language: req.language,
+  }).costUsd;
 
   // 6. db: save the full reply, then return everything to the UI
   const reply = deps.db.saveMessage(ctx.chatId, 'assistant', text);

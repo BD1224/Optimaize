@@ -3,20 +3,20 @@
 // then prints a trace, runs connection checks, and writes an HTML dashboard preview
 // plus a sample JSON for the front-end.
 //   npx tsx scripts/usage-demo.ts [out.html]
-import { DatabaseSync } from 'node:sqlite';
 import { writeFileSync } from 'node:fs';
+import { openDatabase } from '../src/main/db';
 import { getWeeklyStats } from '../src/main/ipc/stats';
 import { createUsageLogger, type UsageLogger } from '../src/main/usage/logger';
 import { baselineCost, netSavings } from '../src/main/usage/pricing';
 import { seedWeek } from '../src/main/usage/seed';
-import type { Difficulty, ModelId, UsageDb, UsageRecord, WeeklyStats } from '../src/main/usage/types';
+import type { Difficulty, ModelId, UsageRecord, WeeklyStats } from '../src/main/usage/types';
 import { WEEK_MS } from '../src/main/usage/weekly';
 
 const DAY = WEEK_MS / 7;
 const now = Date.now();
 const outHtml = process.argv[2] ?? 'usage-demo.html';
 
-const db = new DatabaseSync(':memory:') as unknown as UsageDb;
+const db = openDatabase(':memory:');
 const logger = createUsageLogger(db);
 
 // ---- Stand-in for Person A's chat.ts: shows exactly what must be logged. ----

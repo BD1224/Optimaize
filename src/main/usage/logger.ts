@@ -1,4 +1,3 @@
-import { USAGE_SCHEMA } from './schema';
 import type { UsageDb, UsageRecord } from './types';
 
 interface Row {
@@ -36,9 +35,8 @@ export interface UsageLogger {
   list(since: number, until: number): UsageRecord[];
 }
 
+// Expects the usage_log table from db/schema.sql (openDatabase() applies it).
 export function createUsageLogger(db: UsageDb): UsageLogger {
-  db.exec(USAGE_SCHEMA);
-
   const insert = db.prepare(
     `INSERT INTO usage_log (id, message_id, parent_message_id, kind, model, difficulty,
        input_tokens, output_tokens, is_upgrade, language, created_at)

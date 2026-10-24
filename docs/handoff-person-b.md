@@ -115,9 +115,9 @@ IPC channel: `stats:weekly` returns `WeeklyStats`, with an optional `weekStart` 
 - All figures are labelled as estimates where they're estimates.
 
 ## Integration checklist (do these when wiring the tracks together)
-1. **Write the DB layer.** `db/index.ts` opens SQLite (better-sqlite3) and runs `db/schema.sql` at startup. Both are empty stubs today.
-2. **Move the table into `schema.sql`.** Copy the `usage_log` SQL from `usage/schema.ts` into `db/schema.sql`, remove `db.exec(USAGE_SCHEMA)` from `usage/logger.ts`, then delete `usage/schema.ts`.
-3. **Add `better-sqlite3`** to `package.json` and swap `tests/usage/memdb.ts` to use it.
+1. ~~Write the DB layer~~ Done: `db/index.ts` opens SQLite (`node:sqlite`) and runs `db/schema.sql`.
+2. ~~Move the table into `schema.sql`~~ Done: `usage/schema.ts` is deleted and the logger no longer creates its own table.
+3. **If `node:sqlite` ever causes trouble,** swap to `better-sqlite3`: change the one line in `db/index.ts` that opens the database, add the package, and add the Electron rebuild step. Make sure `db/schema.sql` ships next to the bundled `db/index.js`.
 4. **Wire the logger into `sendMessage`:** an adapter maps Person A's `usage.log({ chatId, model, difficulty, kind, usage })` onto `logger.record(...)` and returns `{ costUsd }`.
 5. **Move shared types** out of `usage/types.ts` into `src/shared/` (reuse `Difficulty` from `shared/chat.ts`).
 6. **Register `stats:weekly`** in the app shell and expose it through the preload bridge.
