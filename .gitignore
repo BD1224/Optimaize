@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output (Electron Forge / tsc)
+out/
+dist/
+*.tsbuildinfo
+
+# Tests
+coverage/
+
+# Local data
+*.sqlite
+*.sqlite3
+*.db
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
