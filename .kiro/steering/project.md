@@ -15,6 +15,8 @@ Tokenizers split non-English text into more pieces than English text, so the sam
 
 Note: these figures come from outside papers and the GPT-4 number does not necessarily apply to Claude's tokenizer. Verify before using them publicly.
 
+Another note (context): For context, we are coding it 3 seperate ways meaning you need to code the skeleton or main idea of the project, and then later on we will circle back and route everything together. The last step should be very simple and only a matter of changing variables and such if things have gone smoothly. But I want you to keep this in mind going forward before you make any big permenetna changes that depend on the entire code 
+
 ## How it works
 
 - **Router**: every message goes through a router that dispatches it to helpers.

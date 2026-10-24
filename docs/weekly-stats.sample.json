@@ -1,0 +1,35 @@
+{
+  "weekStart": 1792256944786,
+  "weekEnd": 1792861744786,
+  "tokensTotal": 143655,
+  "calls": 127,
+  "baselineCost": 1.3332240000000009,
+  "actualCost": 0.46403289999999986,
+  "netSaved": 0.869191100000001,
+  "upgradeCost": 0.075098,
+  "overheadCost": 0.001220000000000002,
+  "upgradeCount": 5,
+  "byModel": {
+    "haiku": {
+      "calls": 95,
+      "tokens": 77957
+    },
+    "sonnet": {
+      "calls": 26,
+      "tokens": 51517
+    },
+    "opus": {
+      "calls": 6,
+      "tokens": 14181
+    }
+  },
+  "energyWh": {
+    "low": 12.571836470937312,
+    "high": 30.172407530249476
+  },
+  "energySavedWh": {
+    "low": 17.373476880561334,
+    "high": 41.69634451334727
+  },
+  "tips": []
+}
