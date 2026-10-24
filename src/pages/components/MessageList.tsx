@@ -1,5 +1,6 @@
 import type { Message, Model, Usage } from "../api/types";
-import { formatNumber, formatSaving, formatUsd, savedFraction } from "../lib/format";
+import { fileKind } from "../lib/files";
+import { formatBytes, formatNumber, formatSaving, formatUsd, savedFraction } from "../lib/format";
 import { ModelBadge } from "./ModelBadge";
 import { UpgradeButton } from "./UpgradeButton";
 import styles from "./MessageList.module.css";
@@ -44,9 +45,21 @@ export function PendingMessage({ text }: { text: string }) {
 function UserMessage({ message, showSentAs }: { message: Message; showSentAs: boolean }) {
   return (
     <div className={styles.userMessage}>
-      <div className={styles.bubble} lang={message.language}>
-        {message.text}
-      </div>
+      {message.files && (
+        <ul className={styles.files} aria-label="Attached files">
+          {message.files.map((file, i) => (
+            <li key={i} className={styles.file}>
+              <span className={styles.fileMeta}>{fileKind(file)}</span> {file.name}{" "}
+              <span className={styles.fileMeta}>{formatBytes(file.size)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {message.text && (
+        <div className={styles.bubble} lang={message.language}>
+          {message.text}
+        </div>
+      )}
       {message.sentAs && (
         <details className={styles.sentAs} open={showSentAs}>
           <summary>Sent as</summary>
@@ -58,6 +71,7 @@ function UserMessage({ message, showSentAs }: { message: Message; showSentAs: bo
 }
 
 function Receipt({ usage, models, onUpgrade }: { usage: Usage; models: Model[]; onUpgrade: (modelId: string) => void }) {
+  // BACKEND: `usage` comes back with each reply: tokens and cost with vs. without Optimaize, and the model used.
   const fraction = savedFraction(usage.tokensWith, usage.tokensWithout);
 
   return (

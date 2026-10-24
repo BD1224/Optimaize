@@ -3,7 +3,9 @@ import { api } from "../api/client";
 import type { LanguageCode, Profile } from "../api/types";
 import { TopBar } from "../components/TopBar";
 import styles from "../components/page.module.css";
+import { useAuth } from "../lib/auth";
 import { LANGUAGES } from "../lib/languages";
+import { navigate } from "../lib/router";
 import { useApp } from "../lib/store";
 
 export function SettingsPage() {
@@ -17,6 +19,7 @@ export function SettingsPage() {
           <h1 className={styles.title}>Settings</h1>
           {profile && <ProfileForm initial={profile} />}
           <ApiKeyForm />
+          <AccountSection />
         </div>
       </div>
     </>
@@ -37,6 +40,7 @@ function ProfileForm({ initial }: { initial: Profile }) {
 
   async function save(event: FormEvent) {
     event.preventDefault();
+    // BACKEND: saves the settings form (name, languages, translate default, show "Sent as").
     setProfile(await api.updateProfile(draft));
     setStatus("Saved");
   }
@@ -101,15 +105,18 @@ function ProfileForm({ initial }: { initial: Profile }) {
 }
 
 function ApiKeyForm() {
+  // API KEY: the Anthropic key the user pastes in. Held only until Save, then cleared.
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // API KEY: asks whether a key is already saved (team name: checkApiKey). Never returns the key itself.
     api.hasApiKey().then(setSaved);
   }, []);
 
   async function save(event: FormEvent) {
     event.preventDefault();
+    // API KEY: handed to the backend here, which keeps it in the OS keychain.
     await api.saveApiKey(key);
     setKey("");
     setSaved(true);
@@ -139,5 +146,29 @@ function ApiKeyForm() {
         </button>
       </div>
     </form>
+  );
+}
+
+function AccountSection() {
+  // AUTH: user = who is logged in (shows their email). setUser(null) logs them out of the app (lib/auth.tsx).
+  const { user, setUser } = useAuth();
+
+  async function logOut() {
+    // BACKEND: ends the session on this computer.
+    await api.logOut();
+    navigate("/login");
+    setUser(null);
+  }
+
+  return (
+    <section>
+      <h2 className={styles.heading}>Account</h2>
+      <div className={styles.actions}>
+        <span className={styles.status}>Logged in as {user?.email}</span>
+        <button type="button" className={styles.buttonQuiet} onClick={() => void logOut()}>
+          Log out
+        </button>
+      </div>
+    </section>
   );
 }

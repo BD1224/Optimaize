@@ -1,19 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { Chat, Stats } from "../api/types";
+import type { Attachment, Chat } from "../api/types";
 import { ChatInput } from "../components/ChatInput";
 import { MessageList, PendingMessage } from "../components/MessageList";
-import { StatCard } from "../components/StatCard";
 import { TopBar } from "../components/TopBar";
-import {
-  formatCompact,
-  formatMultiplier,
-  formatNumber,
-  formatPercent,
-  formatUsd,
-  savedFraction,
-} from "../lib/format";
-import { greeting, LANGUAGES, STARTERS } from "../lib/languages";
+import { formatNumber, formatPercent, savedFraction } from "../lib/format";
+import { HELLO } from "../lib/languages";
 import { href, navigate } from "../lib/router";
 import { useApp } from "../lib/store";
 import styles from "./ChatPage.module.css";
@@ -24,12 +16,13 @@ export function ChatPage({ chatId }: { chatId?: string }) {
 }
 
 function NewChat() {
-  const { profile, model, weekStats, refresh } = useApp();
-  const [hour] = useState(() => new Date().getHours());
+  const { profile, model, refresh } = useApp();
+  // The first language picked in Settings. The greeting says hello in it.
   const language = profile?.languages[0] ?? "en";
 
-  async function send(text: string, translate: boolean) {
-    const chat = await api.sendMessage({ text, translate, model });
+  async function send(text: string, translate: boolean, attachments: Attachment[]) {
+    // PROMPT: the first message of a new chat goes to the backend here, with any attached files.
+    const chat = await api.sendMessage({ text, translate, model, attachments });
     await refresh();
     navigate(`/c/${chat.id}`);
   }
@@ -40,63 +33,12 @@ function NewChat() {
       <div className={styles.home}>
         <div className={styles.center}>
           <h2 className={styles.greeting} lang={language}>
-            {profile && `${greeting(language, hour)}, ${profile.name}`}
+            {profile && `${HELLO[language]}, ${profile.name}`}
           </h2>
           <ChatInput placeholder="Ask anything, in any language…" onSend={send} />
-          {weekStats && <SavingsCards stats={weekStats} />}
-          <div className={styles.chips}>
-            {STARTERS[language].map((starter) => (
-              <button
-                key={starter}
-                type="button"
-                className={styles.chip}
-                lang={language}
-                onClick={() => void send(starter, profile?.translateByDefault ?? false)}
-              >
-                {starter}
-              </button>
-            ))}
-            <a href={href("/lessons")} className={styles.chip}>
-              See your language tax
-            </a>
-          </div>
         </div>
       </div>
     </>
-  );
-}
-
-function SavingsCards({ stats }: { stats: Stats }) {
-  const taxed = stats.byLanguage.filter((l) => l.language !== "en").slice(0, 3);
-
-  return (
-    <div className={styles.cards}>
-      <StatCard
-        to="/dashboard"
-        label="Saved this week"
-        value={formatCompact(stats.tokensWithout - stats.tokensWith)}
-        unit="tokens"
-        delta={{ text: `−${formatPercent(savedFraction(stats.tokensWith, stats.tokensWithout))} vs. sending as typed`, tone: "good" }}
-      />
-      <StatCard
-        to="/dashboard"
-        label="Without Optimaize"
-        value={formatCompact(stats.tokensWithout)}
-        unit="tokens"
-        delta={{ text: `${formatUsd(stats.costWithout - stats.costWith)} saved this week` }}
-      />
-      <StatCard to="/dashboard" label="Your language tax (estimate)">
-        <ul className={styles.taxList}>
-          {taxed.map((l) => (
-            <li key={l.language}>
-              <span lang={l.language}>{LANGUAGES[l.language].native}</span>
-              <span>{formatMultiplier(l.taxMultiplier)}</span>
-            </li>
-          ))}
-          {taxed.length === 0 && <li>No non-English messages yet</li>}
-        </ul>
-      </StatCard>
-    </div>
   );
 }
 
@@ -108,6 +50,7 @@ function Conversation({ id }: { id: string }) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // BACKEND: loads one chat's messages and their token receipts.
     api.getChat(id).then(setChat);
   }, [id]);
 
@@ -118,10 +61,11 @@ function Conversation({ id }: { id: string }) {
   // Prefer the sidebar's copy so renames show up here immediately.
   const title = chats.find((c) => c.id === id)?.title ?? chat?.title;
 
-  async function send(text: string, translate: boolean) {
-    setPending(text);
+  async function send(text: string, translate: boolean, attachments: Attachment[]) {
+    setPending(text || attachments.map((a) => a.name).join(", "));
     try {
-      setChat(await api.sendMessage({ chatId: id, text, translate, model }));
+      // PROMPT: a reply in an existing chat goes to the backend here, with any attached files.
+      setChat(await api.sendMessage({ chatId: id, text, translate, model, attachments }));
       await refresh();
     } finally {
       setPending(null);
@@ -129,6 +73,7 @@ function Conversation({ id }: { id: string }) {
   }
 
   async function upgrade(messageId: string, modelId: string) {
+    // BACKEND: asks the same message again on a bigger model (Upgrade button).
     const next = await api.upgradeMessage(messageId, modelId);
     if (!next) return;
     setChat(next);

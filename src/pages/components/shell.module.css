@@ -183,7 +183,7 @@
   inset: 0 4px 0 auto;
   display: none;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   padding-left: 12px;
   background: linear-gradient(to right, transparent, var(--hover) 12px);
 }
@@ -194,12 +194,12 @@
 }
 
 .miniButton {
-  padding: 3px 6px;
+  padding: 2px 4px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 4px;
   background: none;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
 }
 
@@ -315,29 +315,6 @@
   border-radius: var(--radius-sm);
   background: var(--surface);
   font-size: 14px;
-}
-
-.spacer {
-  flex: 1;
-}
-
-.pill {
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.pill:hover {
-  border-color: var(--border-strong);
-}
-
-.pillValue {
-  color: var(--text-primary);
-  font-weight: 600;
 }
 
 @media (max-width: 720px) {

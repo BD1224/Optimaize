@@ -141,6 +141,7 @@ function ChatListItem({ chat, active }: { chat: ChatSummary; active: boolean }) 
   const { refresh } = useApp();
 
   async function togglePin() {
+    // BACKEND: pin or unpin a chat.
     await api.updateChat(chat.id, { pinned: !chat.pinned });
     await refresh();
   }
@@ -148,12 +149,14 @@ function ChatListItem({ chat, active }: { chat: ChatSummary; active: boolean }) 
   async function rename() {
     const title = window.prompt("Rename chat", chat.title)?.trim();
     if (!title) return;
+    // BACKEND: rename a chat.
     await api.updateChat(chat.id, { title });
     await refresh();
   }
 
   async function remove() {
     if (!window.confirm(`Delete "${chat.title}"?`)) return;
+    // BACKEND: delete a chat.
     await api.deleteChat(chat.id);
     if (active) navigate("/");
     await refresh();

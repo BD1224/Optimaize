@@ -15,6 +15,35 @@ export interface Model {
   outputPrice: number;
 }
 
+/** File types the attach button accepts: images, PDFs and plain text. */
+export const ACCEPTED_FILE_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+  "text/plain",
+  "text/markdown",
+  "text/csv",
+];
+
+/** Largest file the attach button accepts, in bytes (10 MB). The backend can refuse smaller ones if Claude does. */
+export const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+/** A file shown on a message: its name, type and size. */
+export interface AttachedFile {
+  name: string;
+  /** MIME type, e.g. "image/png" or "application/pdf". */
+  type: string;
+  /** Size in bytes. */
+  size: number;
+}
+
+/** A file going to the backend with a message. Carries the bytes because Electron's IPC can't send File objects. */
+export interface Attachment extends AttachedFile {
+  data: ArrayBuffer;
+}
+
 export interface Usage {
   model: string;
   /** Total tokens with Optimaize, including the tokens spent translating and rewriting. */
@@ -32,6 +61,8 @@ export interface Message {
   language: LanguageCode;
   /** User messages only, when translation was on: the English prompt that was actually sent to Claude. */
   sentAs?: string;
+  /** User messages only: files sent with it. */
+  files?: AttachedFile[];
   /** Assistant messages only. */
   usage?: Usage;
   createdAt: number;
@@ -104,4 +135,39 @@ export interface SendMessageInput {
   translate: boolean;
   /** A model id, or AUTO_MODEL. */
   model: string;
+  /** Files attached to this message (empty when none). The backend sends them to Claude with the prompt. */
+  attachments: Attachment[];
 }
+
+/** Shortest password sign up accepts. The backend checks it too. */
+export const MIN_PASSWORD_LENGTH = 8;
+
+/** The logged-in person. The UI never sees passwords or session tokens; the backend keeps those. */
+export interface User {
+  /** The backend's id for this account. Also used to give each user fresh app data (App.tsx). */
+  id: string;
+  /** Shown in Settings under Account. */
+  email: string;
+}
+
+export interface SignUpInput {
+  /** Stored as the profile name, used for the greeting. */
+  name: string;
+  email: string;
+  /** At least MIN_PASSWORD_LENGTH characters. The backend stores only a hash of it. */
+  password: string;
+}
+
+export interface LogInInput {
+  email: string;
+  /** Checked against the stored hash by the backend. Never kept by the UI. */
+  password: string;
+}
+
+/**
+ * Why sign up or log in failed. Returned as a value rather than thrown, because a thrown error's details
+ * don't survive Electron's IPC.
+ */
+export type AuthError = "invalid_email" | "weak_password" | "email_taken" | "wrong_credentials";
+
+export type AuthResult = { ok: true; user: User } | { ok: false; error: AuthError };

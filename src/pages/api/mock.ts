@@ -3,17 +3,21 @@
 
 import { AUTO_MODEL } from "./types";
 import type {
+  AuthResult,
   Chat,
   ChatSummary,
   Estimate,
   LanguageCode,
   LanguageStat,
+  LogInInput,
   Model,
   ModelStat,
   Profile,
   SendMessageInput,
+  SignUpInput,
   Stats,
   Usage,
+  User,
 } from "./types";
 
 const MODELS: Model[] = [
@@ -300,7 +304,8 @@ export async function sendMessage(input: SendMessageInput): Promise<Chat> {
   const now = Date.now();
   let chat = input.chatId ? db().find((c) => c.id === input.chatId) : undefined;
   if (!chat) {
-    chat = { id: newId("c"), title: titleFrom(input.text), pinned: false, updatedAt: now, savedFraction: 0, messages: [] };
+    const title = titleFrom(input.text || input.attachments[0]?.name || "New chat");
+    chat = { id: newId("c"), title, pinned: false, updatedAt: now, savedFraction: 0, messages: [] };
     db().push(chat);
   }
   const reply = MOCK_REPLIES[language];
@@ -312,6 +317,8 @@ export async function sendMessage(input: SendMessageInput): Promise<Chat> {
       text: input.text,
       language,
       sentAs: translate ? `(mock English version) ${input.text}` : undefined,
+      // Only the names, types and sizes come back; the file contents stay with the backend.
+      files: input.attachments.length > 0 ? input.attachments.map(({ name, type, size }) => ({ name, type, size })) : undefined,
       createdAt: now,
     },
     {
@@ -391,4 +398,62 @@ export async function saveApiKey(key: string): Promise<void> {
 export async function hasApiKey(): Promise<boolean> {
   await wait();
   return apiKeySaved;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Log in and sign up: NOT CONNECTED YET. No accounts exist here and nothing is checked, so any email and password
+// lets you in and the rest of the app can still be previewed. The backend replaces these four functions;
+// their inputs, outputs and errors are in FRONTEND_SCOPE.md section 8.
+
+// AUTH: false while log in isn't connected, so the log in and sign up screens say any email and password works.
+// Goes away by itself when client.ts switches from this file to the real backend.
+export const authConnected = false;
+
+// Keeps whoever logged in until the preview tab is closed, so a reload doesn't send you back to Log in.
+// Only what the user typed is kept. The backend decides how long a real session lasts.
+const SESSION_KEY = "optimaize-preview-user";
+
+function remember(user: User | null) {
+  try {
+    if (user) sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    else sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Storage can be blocked; you then log in again after a reload.
+  }
+}
+
+// Backend: return the user still logged in from last time, or null if nobody is.
+// Used by: lib/auth.tsx when the app opens.
+export async function getSession(): Promise<User | null> {
+  try {
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    return saved ? (JSON.parse(saved) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
+// Backend: check the email and password rules, refuse an email that is already used ("email_taken"), store a slow
+// hash of the password (never the password itself), save the name as the profile name, and log the user in.
+// Used by: auth/SignUpPage.tsx.
+export async function signUp(input: SignUpInput): Promise<AuthResult> {
+  const user = { id: input.email, email: input.email };
+  profile = { ...profile, name: input.name.trim() };
+  remember(user);
+  return { ok: true, user };
+}
+
+// Backend: check the email and password against the stored hash. Return "wrong_credentials" whether the email or
+// the password is wrong, so the screen never reveals who has an account.
+// Used by: auth/LogInPage.tsx.
+export async function logIn(input: LogInInput): Promise<AuthResult> {
+  const user = { id: input.email, email: input.email };
+  remember(user);
+  return { ok: true, user };
+}
+
+// Backend: end the session on this computer.
+// Used by: settings/SettingsPage.tsx (Log out button).
+export async function logOut(): Promise<void> {
+  remember(null);
 }

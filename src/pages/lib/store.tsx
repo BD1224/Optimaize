@@ -27,6 +27,7 @@ interface ChatData {
 
 async function fetchChatData(): Promise<ChatData> {
   const loadedAt = Date.now();
+  // BACKEND: the chat list for the sidebar, and this week's savings (team name: getWeeklyStats).
   const [chats, weekStats] = await Promise.all([api.listChats(), api.getStats(loadedAt - WEEK)]);
   return { chats, weekStats, loadedAt };
 }
@@ -36,13 +37,16 @@ const AppContext = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [models, setModels] = useState<Model[]>([]);
+  // BACKEND: the model picked in the top bar ("auto" = let the router choose). Sent with every message.
   const [model, setModel] = useState(AUTO_MODEL);
   const [data, setData] = useState<ChatData>({ chats: [], weekStats: null, loadedAt: 0 });
 
   const refresh = useCallback(async () => setData(await fetchChatData()), []);
 
   useEffect(() => {
+    // BACKEND: loads the user's settings (name, languages, translate default) when the app opens.
     api.getProfile().then(setProfile);
+    // BACKEND: the Claude models and their prices, for the model picker and Upgrade button.
     api.listModels().then(setModels);
     fetchChatData().then(setData);
   }, []);

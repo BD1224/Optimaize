@@ -15,6 +15,28 @@
   white-space: pre-wrap;
 }
 
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.fileMeta {
+  color: var(--text-muted);
+}
+
 .sentAs {
   max-width: 100%;
   color: var(--text-muted);

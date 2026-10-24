@@ -156,6 +156,18 @@
   cursor: default;
 }
 
+.buttonQuiet {
+  padding: 8px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.buttonQuiet:hover {
+  background: var(--hover);
+}
+
 .status {
   color: var(--text-muted);
   font-size: 13px;

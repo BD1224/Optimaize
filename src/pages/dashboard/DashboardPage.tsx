@@ -22,6 +22,7 @@ export function DashboardPage() {
 
   // `chats` changes whenever a message is sent, so the numbers stay current.
   useEffect(() => {
+    // BACKEND: savings since a date, in total, by language and by model (team name: getWeeklyStats).
     api.getStats(days === null ? 0 : Date.now() - days * DAY).then(setStats);
   }, [days, chats]);
 

@@ -42,6 +42,68 @@
   border-radius: 50%;
   background: none;
   color: var(--text-muted);
+  cursor: pointer;
+}
+
+.attach:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+/* Attached files, above the text box */
+
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 280px;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12px;
+}
+
+.fileName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.removeFile {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.removeFile:hover {
+  background: var(--hover);
+  color: var(--text-primary);
+}
+
+.fileError {
+  margin: 8px 14px 0;
+  color: var(--critical);
+  font-size: 12px;
 }
 
 .chip,
